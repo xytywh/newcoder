@@ -21,12 +21,14 @@ void myFun(int num) {
     // while(1) {
     //     wait(NULL); 
     // }
+    // 这里用while循环的原因是可能有多个进程同时结束了，相当于手动的在这里进行排队  一个个处理
     while(1) {
+        // 可以设置非阻塞，不影响父进程中其他的代码运行
        int ret = waitpid(-1, NULL, WNOHANG);
        if(ret > 0) {
            printf("child die , pid = %d\n", ret);
        } else if(ret == 0) {
-           // 说明还有子进程或者
+           // 说明还有子进程活着
            break;
        } else if(ret == -1) {
            // 没有子进程
@@ -37,7 +39,7 @@ void myFun(int num) {
 
 int main() {
 
-    // 提前设置好阻塞信号集，阻塞SIGCHLD，因为有可能子进程很快结束，父进程还没有注册完信号捕捉
+    // 提前设置好阻塞信号集，阻塞SIGCHLD，因为有可能子进程很快结束，父进程还没有注册完信号捕捉 当然概率不一定大 但是也要避免
     sigset_t set;
     sigemptyset(&set);
     sigaddset(&set, SIGCHLD);
@@ -62,7 +64,7 @@ int main() {
         sigemptyset(&act.sa_mask);
         sigaction(SIGCHLD, &act, NULL);
 
-        // 注册完信号捕捉以后，解除阻塞
+        // 注册完信号捕捉以后，解除阻塞  就可以去处理信号了
         sigprocmask(SIG_UNBLOCK, &set, NULL);
 
         while(1) {

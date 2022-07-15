@@ -1,5 +1,6 @@
 /*
     #include <signal.h>
+    尽量不使用signal函数 因为不同标准可能会不太一样 使用sigaction函数比较好一点 更通用
     int sigaction(int signum, const struct sigaction *act,
                             struct sigaction *oldact);
 
@@ -32,6 +33,8 @@
 #include <stdlib.h>
 #include <signal.h>
 
+// 当接受到信号在执行回调函数的过程中  如果又接收到了同样的信号 会等当前回调函数执行完了再去执行下一次的回调函数
+// 如果同时接收到了多个  也只能保留一个   不支持排队一个个处理
 void myalarm(int num) {
     printf("捕捉到了信号的编号是：%d\n", num);
     printf("xxxxxxx\n");
