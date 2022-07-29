@@ -16,7 +16,7 @@
 void work(int num) {
     // 捕捉到信号之后，获取系统时间，写入磁盘文件
     time_t tm = time(NULL);
-    struct tm * loc = localtime(&tm);
+    struct tm *loc = localtime(&tm);
     // char buf[1024];
 
     // sprintf(buf, "%d-%d-%d %d:%d:%d\n",loc->tm_year,loc->tm_mon
@@ -24,9 +24,9 @@ void work(int num) {
 
     // printf("%s\n", buf);
 
-    char * str = asctime(loc);
+    char *str = asctime(loc);
     int fd = open("time.txt", O_RDWR | O_CREAT | O_APPEND, 0664);
-    write(fd ,str, strlen(str));
+    write(fd, str, strlen(str));
     close(fd);
 }
 
@@ -35,7 +35,7 @@ int main() {
     // 1.创建子进程，退出父进程
     pid_t pid = fork();
 
-    if(pid > 0) {
+    if (pid > 0) {
         exit(0);
     }
 
@@ -46,7 +46,7 @@ int main() {
     umask(022);
 
     // 4.更改工作目录
-    chdir("/home/nowcoder/");
+    chdir("./");
 
     // 5. 关闭、重定向文件描述符
     int fd = open("/dev/null", O_RDWR);
@@ -73,7 +73,7 @@ int main() {
     setitimer(ITIMER_REAL, &val, NULL);
 
     // 不让进程结束
-    while(1) {
+    while (1) {
         sleep(10);
     }
 
