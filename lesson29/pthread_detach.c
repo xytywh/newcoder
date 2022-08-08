@@ -2,8 +2,8 @@
     #include <pthread.h>
     int pthread_detach(pthread_t thread);
         - 功能：分离一个线程。被分离的线程在终止的时候，会自动释放资源返回给系统。
-          1.不能多次分离，会产生不可预料的行为。
-          2.不能去连接一个已经分离的线程，会报错。
+          1.不能多次分离，会产生不可预料的行为。 不能多次detach
+          2.不能去连接一个已经分离的线程，会报错。detach之后不能再join
         - 参数：需要分离的线程的ID
         - 返回值：
             成功：0
@@ -14,7 +14,7 @@
 #include <string.h>
 #include <unistd.h>
 
-void * callback(void * arg) {
+void *callback(void *arg) {
     printf("chid thread id : %ld\n", pthread_self());
     return NULL;
 }
@@ -25,8 +25,8 @@ int main() {
     pthread_t tid;
 
     int ret = pthread_create(&tid, NULL, callback, NULL);
-    if(ret != 0) {
-        char * errstr = strerror(ret);
+    if (ret != 0) {
+        char *errstr = strerror(ret);
         printf("error1 : %s\n", errstr);
     }
 
@@ -35,15 +35,16 @@ int main() {
 
     // 设置子线程分离,子线程分离后，子线程结束时对应的资源就不需要主线程释放
     ret = pthread_detach(tid);
-    if(ret != 0) {
-        char * errstr = strerror(ret);
+    if (ret != 0) {
+        char *errstr = strerror(ret);
         printf("error2 : %s\n", errstr);
     }
 
     // 设置分离后，对分离的子线程进行连接 pthread_join()
+    // 不能再调用下面的了 detach之后不能再join
     // ret = pthread_join(tid, NULL);
-    // if(ret != 0) {
-    //     char * errstr = strerror(ret);
+    // if (ret != 0) {
+    //     char *errstr = strerror(ret);
     //     printf("error3 : %s\n", errstr);
     // }
 

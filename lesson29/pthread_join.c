@@ -20,13 +20,13 @@
 
 int value = 10;
 
-void * callback(void * arg) {
+void *callback(void *arg) {
     printf("child thread id : %ld\n", pthread_self());
     // sleep(3);
     // return NULL; 
-    // int value = 10; // 局部变量
-    pthread_exit((void *)&value);   // return (void *)&value;
-} 
+    // int value = 10; // 局部变量 下面不能返回局部变量的地址  因为在栈上 结束就被销毁了  可以使用全局变量或者动态申请的
+    pthread_exit((void *) &value);   // 相当于return (void *)&value;
+}
 
 int main() {
 
@@ -34,24 +34,26 @@ int main() {
     pthread_t tid;
     int ret = pthread_create(&tid, NULL, callback, NULL);
 
-    if(ret != 0) {
-        char * errstr = strerror(ret);
+    if (ret != 0) {
+        char *errstr = strerror(ret);
         printf("error : %s\n", errstr);
     }
 
     // 主线程
-    for(int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++) {
         printf("%d\n", i);
     }
 
-    printf("tid : %ld, main thread id : %ld\n", tid ,pthread_self());
+    printf("tid : %ld, main thread id : %ld\n", tid, pthread_self());
 
     // 主线程调用pthread_join()回收子线程的资源
-    int * thread_retval;
-    ret = pthread_join(tid, (void **)&thread_retval);
+    int *thread_retval;
+    // 第二个参数是为了接收线程退出时的返回值，线程退出时返回值是void*类型
+    // （为了去接收一个指针类型的返回值 或者说是为了改变一个指针类型的入参）所以需要传入的是二级指针 而不是一级指针
+    ret = pthread_join(tid, (void **) &thread_retval);
 
-    if(ret != 0) {
-        char * errstr = strerror(ret);
+    if (ret != 0) {
+        char *errstr = strerror(ret);
         printf("error : %s\n", errstr);
     }
 
@@ -62,5 +64,5 @@ int main() {
     // 让主线程退出,当主线程退出时，不会影响其他正常运行的线程。
     pthread_exit(NULL);
 
-    return 0; 
+    return 0;
 }
