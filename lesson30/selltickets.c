@@ -8,11 +8,15 @@
 #include <unistd.h>
 
 // 全局变量，所有的线程都共享这一份资源。
+// 多个线程对同一个共享的资源进行处理 可能会出现线程安全（同步）问题
 int tickets = 100;
 
-void * sellticket(void * arg) {
+void *sellticket(void *arg) {
     // 卖票
-    while(tickets > 0) {
+    // 线程不安全  多个线程抢资源 可能会出现卖0 -1张门票的情况
+    while (tickets > 0) {
+        // 应该使用全局变量
+        // int tickets = 100;
         usleep(6000);
         printf("%ld 正在卖第 %d 张门票\n", pthread_self(), tickets);
         tickets--;

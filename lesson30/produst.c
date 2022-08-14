@@ -9,20 +9,20 @@
 // 创建一个互斥量
 pthread_mutex_t mutex;
 
-struct Node{
+struct Node {
     int num;
     struct Node *next;
 };
 
 // 头结点
-struct Node * head = NULL;
+struct Node *head = NULL;
 
-void * producer(void * arg) {
+void *producer(void *arg) {
 
     // 不断的创建新的节点，添加到链表中
-    while(1) {
+    while (1) {
         pthread_mutex_lock(&mutex);
-        struct Node * newNode = (struct Node *)malloc(sizeof(struct Node));
+        struct Node *newNode = (struct Node *) malloc(sizeof(struct Node));
         newNode->next = head;
         head = newNode;
         newNode->num = rand() % 1000;
@@ -34,15 +34,16 @@ void * producer(void * arg) {
     return NULL;
 }
 
-void * customer(void * arg) {
+void *customer(void *arg) {
 
-    while(1) {
+    // 我们这样写其实效率是不高的  如果链表空了  没有数据了  消费者还是一直在这里去判断 去拿数据  还是拿不到的
+    while (1) {
         pthread_mutex_lock(&mutex);
         // 保存头结点的指针
-        struct Node * tmp = head;
+        struct Node *tmp = head;
 
         // 判断是否有数据
-        if(head != NULL) {
+        if (head != NULL) {
             // 有数据
             head = head->next;
             printf("del node, num : %d, tid : %ld\n", tmp->num, pthread_self());
@@ -50,11 +51,11 @@ void * customer(void * arg) {
             pthread_mutex_unlock(&mutex);
             usleep(100);
         } else {
-            // 没有数据
+            // 没有数据  如果没有这一句会导致死锁  因为如果两个链表空了  多线程都在走到了上面加锁的地方  没有线程释放锁  那就死锁了
             pthread_mutex_unlock(&mutex);
         }
     }
-    return  NULL;
+    return NULL;
 }
 
 int main() {
@@ -64,17 +65,17 @@ int main() {
     // 创建5个生产者线程，和5个消费者线程
     pthread_t ptids[5], ctids[5];
 
-    for(int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++) {
         pthread_create(&ptids[i], NULL, producer, NULL);
         pthread_create(&ctids[i], NULL, customer, NULL);
     }
 
-    for(int i = 0; i < 5; i++) {
+    for (int i = 0; i < 5; i++) {
         pthread_detach(ptids[i]);
         pthread_detach(ctids[i]);
     }
 
-    while(1) {
+    while (1) {
         sleep(10);
     }
 

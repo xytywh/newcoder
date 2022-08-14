@@ -8,32 +8,59 @@ int tickets = 1000;
 // 创建一个互斥量
 pthread_mutex_t mutex;
 
-void * sellticket(void * arg) {
+void *sellticket(void *arg) {
 
     // 卖票
-    while(1) {
+    while (1) {
 
-        // 加锁
         pthread_mutex_lock(&mutex);
-        pthread_mutex_lock(&mutex);
+        // 使用下面的trylock倒不会导致死锁  到时不能保持多线程之间的同步了
+        // pthread_mutex_trylock(&mutex);
 
-        if(tickets > 0) {
+        if (tickets > 0) {
             usleep(6000);
             printf("%ld 正在卖第 %d 张门票\n", pthread_self(), tickets);
             tickets--;
-        }else {
+        } else {
             // 解锁
             pthread_mutex_unlock(&mutex);
             break;
         }
 
-        // 解锁
-        pthread_mutex_unlock(&mutex);
-        pthread_mutex_unlock(&mutex);
+        // 解锁 忘记解锁  导致死锁
+        // pthread_mutex_unlock(&mutex);
     }
 
     return NULL;
 }
+
+
+// void *sellticket(void *arg) {
+//
+//     // 卖票
+//     while (1) {
+//
+//         // 加锁  重复加锁导致死锁
+//         pthread_mutex_lock(&mutex);
+//         pthread_mutex_lock(&mutex);
+//
+//         if (tickets > 0) {
+//             usleep(6000);
+//             printf("%ld 正在卖第 %d 张门票\n", pthread_self(), tickets);
+//             tickets--;
+//         } else {
+//             // 解锁
+//             pthread_mutex_unlock(&mutex);
+//             break;
+//         }
+//
+//         // 解锁
+//         pthread_mutex_unlock(&mutex);
+//         pthread_mutex_unlock(&mutex);
+//     }
+//
+//     return NULL;
+// }
 
 int main() {
 

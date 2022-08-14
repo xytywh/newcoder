@@ -5,7 +5,7 @@
 // 创建2个互斥量
 pthread_mutex_t mutex1, mutex2;
 
-void * workA(void * arg) {
+void *workA(void *arg) {
 
     pthread_mutex_lock(&mutex1);
     sleep(1);
@@ -19,9 +19,10 @@ void * workA(void * arg) {
 }
 
 
-void * workB(void * arg) {
+void *workB(void *arg) {
     pthread_mutex_lock(&mutex2);
     sleep(1);
+    // 线程1加了锁 线程2再想加锁就阻塞在这等待线程2释放了才可以  但是线程1也要等待线程2释放1他的mutex2锁  两者卡在这里 死锁了
     pthread_mutex_lock(&mutex1);
 
     printf("workB....\n");

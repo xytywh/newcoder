@@ -25,32 +25,29 @@
 #include <pthread.h>
 #include <unistd.h>
 
-// 创建一个互斥量 每一个子线程中使用  所以需要放在全局区  如果创建一个main中的局部变量
+// 全局变量，所有的线程都共享这一份资源。
 int tickets = 1000;
 
-// 创建一个互斥量
-pthread_mutex_t mutex;
 
-void *sellticket(void *arg) {
+void *sellticket(void *mutex) {
 
     // 卖票
     while (1) {
 
         // 加锁
-        pthread_mutex_lock(&mutex);
+        pthread_mutex_lock((pthread_mutex_t *) mutex);
 
         if (tickets > 0) {
-            // usleep(6000);
             printf("%ld 正在卖第 %d 张门票\n", pthread_self(), tickets);
             tickets--;
         } else {
             // 解锁
-            pthread_mutex_unlock(&mutex);
+            pthread_mutex_unlock((pthread_mutex_t *) mutex);
             break;
         }
 
         // 解锁
-        pthread_mutex_unlock(&mutex);
+        pthread_mutex_unlock((pthread_mutex_t *) mutex);
     }
 
 
@@ -59,22 +56,19 @@ void *sellticket(void *arg) {
 
 int main() {
 
+    // 用局部变量好像也行
+    pthread_mutex_t mutex;
+
     // 初始化互斥量
     pthread_mutex_init(&mutex, NULL);
 
     // 创建3个子线程
     pthread_t tid1, tid2, tid3;
-    pthread_create(&tid1, NULL, sellticket, NULL);
-    pthread_create(&tid2, NULL, sellticket, NULL);
-    pthread_create(&tid3, NULL, sellticket, NULL);
+    pthread_create(&tid1, NULL, sellticket, &mutex);
+    pthread_create(&tid2, NULL, sellticket, &mutex);
+    pthread_create(&tid3, NULL, sellticket, &mutex);
 
-    // 回收子线程的资源,阻塞  主线程可以使用pthread_exit结束 或者使用return 0结束都可以的 因为主线程使用了pthread_join 会阻塞
-    // 在这里等待子线程运行完才会继续往下执行 所以使用那种方式结束都行
-    // pthread_join(tid1, NULL);
-    // pthread_join(tid2, NULL);
-    // pthread_join(tid3, NULL);
-
-    // 回收子线程的资源，不阻塞  如果使用这种方式 主线程必须要使用pthread_exit退出  否则使用return 0退出 会使得子线程也一起结束了
+    // 回收子线程的资源,阻塞
     pthread_detach(tid1);
     pthread_detach(tid2);
     pthread_detach(tid3);
@@ -82,7 +76,7 @@ int main() {
     pthread_exit(NULL); // 退出主线程
 
     // 释放互斥量资源
-    // pthread_mutex_destroy(&mutex);
+    pthread_mutex_destroy(&mutex);
 
     return 0;
 }
