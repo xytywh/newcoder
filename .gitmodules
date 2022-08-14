@@ -1,0 +1,3 @@
+[submodule "WebServer"]
+	path = WebServer
+	url = git@github.com:xytywh/WebServer.git
